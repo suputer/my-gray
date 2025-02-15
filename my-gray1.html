@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My-Gray</title>
+</head>
+<body style="margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: url('fon.png') no-repeat center/cover; font-family: Arial, sans-serif;">
+
+    <div id="menu" style="text-align: center;">
+        <h1 style="color: white; text-shadow: 2px 2px 4px black;">My-Gray</h1>
+        <img src="logo.png" id="menu-logo" style="width: 200px;">
+        <button id="start-btn" style="display: block; margin: 20px auto; padding: 10px 20px; font-size: 18px;">Начать</button>
+    </div>
+
+    <div id="game" style="display: none; position: relative; width: 100vw; height: 100vh; background: url('gl-fon.png') no-repeat center/cover; text-align: center;">
+        <img src="logo.png" id="game-logo" style="width: 250px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); touch-action: none;">
+        <img src="play.png" id="play-icon" style="width: 100px; position: absolute; top: 50%; left: calc(50% - 150px); transform: translate(-50%, -50%);">
+
+        <div id="buttons" style="position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center;">
+            <button id="btn1" style="position: relative; width: 60px; height: 60px; margin: 5px; background: linear-gradient(to top, green 100%, transparent 100%); border: 2px solid black;">
+                <img src="icon1.png" style="width: 50px; position: absolute; top: 5px; left: 5px;">
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let joy = localStorage.getItem("joy") ? parseInt(localStorage.getItem("joy")) : 50;
+        const gameLogo = document.getElementById("game-logo");
+        const startBtn = document.getElementById("start-btn");
+        const menu = document.getElementById("menu");
+        const game = document.getElementById("game");
+        const btn1 = document.getElementById("btn1");
+
+        startBtn.onclick = () => {
+            menu.style.display = "none";
+            game.style.display = "block";
+        };
+
+        let rubbing = false;
+
+        function startRubbing() {
+            rubbing = true;
+            gameLogo.src = "logoG.png";
+        }
+
+        function stopRubbing() {
+            rubbing = false;
+            updateJoy();
+        }
+
+        gameLogo.addEventListener("mousedown", startRubbing);
+        gameLogo.addEventListener("mouseup", stopRubbing);
+        gameLogo.addEventListener("touchstart", startRubbing);
+        gameLogo.addEventListener("touchend", stopRubbing);
+
+        setInterval(() => {
+            if (rubbing) {
+                joy = Math.min(100, joy + 1);
+                localStorage.setItem("joy", joy);
+            }
+        }, 2000);
+
+        setInterval(() => {
+            if (!rubbing) {
+                joy = Math.max(0, joy - 1);
+                localStorage.setItem("joy", joy);
+            }
+        }, 5000);
+
+        function updateJoy() {
+            gameLogo.src = joy < 30 ? "logoS.png" : "logo.png";
+            btn1.style.background = `linear-gradient(to top, green ${joy}%, transparent ${joy}%)`;
+        }
+
+        setInterval(updateJoy, 1000);
+    </script>
+</body>
+</html>
