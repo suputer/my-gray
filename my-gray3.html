@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My-Gray</title>
+</head>
+<body style="margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: url('fon.png') no-repeat center/cover; font-family: Arial, sans-serif;">
+
+    <div id="menu" style="text-align: center;">
+        <h1 style="color: white; text-shadow: 2px 2px 4px black;">My-Gray</h1>
+        <img src="logo.png" id="menu-logo" style="width: 200px;">
+        <button id="start-btn" style="display: block; margin: 20px auto; padding: 10px 20px; font-size: 18px;">Начать</button>
+    </div>
+
+    <div id="game" style="display: none; position: relative; width: 100vw; height: 100vh; background: url('gl-fon.png') no-repeat center/cover; text-align: center;">
+        <img src="logo.png" id="game-logo" style="width: 250px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); touch-action: none;">
+        <img src="play.png" id="play-icon" style="width: 100px; position: absolute; top: 50%; left: calc(50% - 150px); transform: translate(-50%, -50%);">
+
+        <img src="burger.png" id="burger" style="width: 80px; position: absolute; bottom: 6.5cm; left: 50%; transform: translateX(-50%); display: none; cursor: pointer; transition: opacity 0.5s;">
+
+        <div id="buttons" style="position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center;">
+            <button id="btn1" class="menu-btn" style="position: relative; width: 60px; height: 60px; margin: 5px; background: linear-gradient(to top, green 100%, transparent 100%); border: 2px solid black;">
+                <img src="icon1.png" style="width: 50px; position: absolute; top: 5px; left: 5px;">
+            </button>
+            <button id="btn2" class="menu-btn" style="position: relative; width: 60px; height: 60px; margin: 5px; background: linear-gradient(to top, green 100%, transparent 100%); border: 2px solid black;">
+                <img src="icon2.png" style="width: 50px; position: absolute; top: 5px; left: 5px;">
+            </button>
+        </div>
+    </div>
+
+    <audio id="hrum-sound" src="Hrum.mp3"></audio>
+
+    <script>
+        let joy = localStorage.getItem("joy") ? parseInt(localStorage.getItem("joy")) : 50;
+        let hunger = localStorage.getItem("hunger") ? parseInt(localStorage.getItem("hunger")) : 50;
+        const gameLogo = document.getElementById("game-logo");
+        const startBtn = document.getElementById("start-btn");
+        const menu = document.getElementById("menu");
+        const game = document.getElementById("game");
+        const btn1 = document.getElementById("btn1");
+        const btn2 = document.getElementById("btn2");
+        const burger = document.getElementById("burger");
+        const playIcon = document.getElementById("play-icon");
+        const hrumSound = document.getElementById("hrum-sound");
+        const buttons = document.querySelectorAll(".menu-btn");
+
+        let rubbing = false;
+        let logoGTimeout;
+
+        function startRubbing() {
+            rubbing = true;
+            gameLogo.src = "logoG.png";
+            clearTimeout(logoGTimeout);
+        }
+
+        function stopRubbing() {
+            rubbing = false;
+            logoGTimeout = setTimeout(updateStatus, 2000);
+        }
+
+        function updateStatus() {
+            gameLogo.src = hunger < 30 ? "logoS.png" : "logo.png";
+            btn1.style.background = `linear-gradient(to top, green ${joy}%, transparent ${joy}%)`;
+            btn2.style.background = `linear-gradient(to top, green ${hunger}%, transparent ${hunger}%)`;
+        }
+
+        function switchMenu(menuNumber) {
+            if (menuNumber === 1) {
+                game.style.background = "url('gl-fon.png') no-repeat center/cover";
+                burger.style.display = "none";
+                playIcon.style.display = "block";
+            } else if (menuNumber === 2) {
+                game.style.background = "url('fon2.png') no-repeat center/cover";
+                burger.style.display = "block";
+                playIcon.style.display = "none";
+            }
+
+            buttons.forEach(btn => btn.style.border = "2px solid black");
+            document.getElementById(`btn${menuNumber}`).style.border = "4px solid green";
+        }
+
+        function eatBurger() {
+            burger.style.opacity = "0";
+            gameLogo.src = "logoH.png";
+            hrumSound.play();
+
+            setTimeout(() => {
+                hrumSound.pause();
+                hrumSound.currentTime = 0;
+                burger.style.opacity = "1";
+                hunger = Math.min(100, hunger + 10);
+                localStorage.setItem("hunger", hunger);
+                gameLogo.src = hunger < 30 ? "logoS.png" : "logo.png";
+                updateStatus();
+            }, 2000);
+        }
+
+        startBtn.onclick = () => {
+            menu.style.display = "none";
+            game.style.display = "block";
+        };
+
+        gameLogo.addEventListener("mousedown", startRubbing);
+        gameLogo.addEventListener("mouseup", stopRubbing);
+        gameLogo.addEventListener("touchstart", startRubbing);
+        gameLogo.addEventListener("touchend", stopRubbing);
+
+        btn1.onclick = () => switchMenu(1);
+        btn2.onclick = () => switchMenu(2);
+        burger.onclick = eatBurger;
+
+        setInterval(() => {
+            if (rubbing) {
+                joy = Math.min(100, joy + 1);
+                localStorage.setItem("joy", joy);
+            }
+        }, 2000);
+
+        setInterval(() => {
+            if (!rubbing) {
+                joy = Math.max(0, joy - 1);
+                localStorage.setItem("joy", joy);
+            }
+        }, 5000);
+
+        setInterval(() => {
+            hunger = Math.max(0, hunger - 1);
+            localStorage.setItem("hunger", hunger);
+            updateStatus();
+        }, 60000);
+
+        setInterval(updateStatus, 1000);
+    </script>
+</body>
+</html>
