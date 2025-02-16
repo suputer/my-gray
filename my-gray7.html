@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My-Gray</title>
+    <style>
+        /* Общие стили */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('fon.png') no-repeat center/cover;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Меню и игровые экраны */
+        #menu, #game, #shop {
+            text-align: center;
+            display: none;
+        }
+
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px black;
+        }
+
+        .button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 18px;
+        }
+
+        /* Отображение монет */
+        #currency {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        #currency img {
+            width: 30px;
+            margin-left: 5px;
+        }
+
+        /* Кнопки */
+        #buttons {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .menu-btn {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            border: 2px solid black;
+        }
+
+        /* Меню выбора еды */
+        #food-menu {
+            position: absolute;
+            bottom: 4.5cm;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+        }
+
+        #selected-food {
+            position: relative;
+        }
+
+        #food-quantity {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: red;
+            color: white;
+            padding: 5px;
+            border-radius: 50%;
+            font-size: 14px;
+        }
+
+        .arrow {
+            font-size: 24px;
+            cursor: pointer;
+            margin: 0 10px;
+            user-select: none;
+        }
+
+        /* Магазин */
+        #shop-items {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .shop-item {
+            width: 120px;
+            margin: 10px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .price {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 5px;
+        }
+
+        .price img {
+            width: 20px;
+            margin-left: 5px;
+        }
+
+        #cart {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Анимация покупки еды */
+        .falling-item {
+            position: absolute;
+            width: 120px;
+            transition: transform 1s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <!-- Главное меню -->
+    <div id="menu">
+        <h1>My-Gray</h1>
+        <img src="logo.png" id="menu-logo" width="200">
+        <button id="start-btn" class="button">Начать</button>
+    </div>
+
+    <!-- Игровой экран -->
+    <div id="game">
+        <div id="currency">
+            <span id="money">0</span>
+            <img src="money.png">
+        </div>
+
+        <img src="logo.png" id="game-logo" width="250">
+        <div id="food-menu">
+            <span class="arrow" id="prev-food">◀</span>
+            <div id="selected-food">
+                <img src="burger.png" id="food-icon" width="120">
+                <div id="food-quantity">1</div>
+            </div>
+            <span class="arrow" id="next-food">▶</span>
+        </div>
+
+        <div id="buttons">
+            <button id="btn1" class="menu-btn">Играть</button>
+            <button id="btn2" class="menu-btn">Магазин</button>
+        </div>
+    </div>
+
+    <!-- Магазин -->
+    <div id="shop">
+        <h1>Магазин</h1>
+        <div id="shop-items"></div>
+        <img src="telega.png" id="cart" width="100">
+        <button id="back-btn" class="button">Назад</button>
+    </div>
+
+    <script>
+        // Логика игры
+        let joy = 50;
+        let hunger = 50;
+        let money = parseInt(localStorage.getItem("money")) || 0;
+        let foodInventory = JSON.parse(localStorage.getItem("foodInventory")) || { burger: 1 };
+        let selectedFood = "burger";
+        const foodPrices = { burger: 40, cookie: 10, fruit: 30, cake: 100, milk: 5, hotdog: 40 };
+        const foods = Object.keys(foodPrices);
+
+        // Запуск игры
+        document.getElementById("start-btn").onclick = () => {
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("game").style.display = "block";
+        };
+
+        function updateUI() {
+            document.getElementById("money").textContent = money;
+            document.getElementById("food-icon").src = `${selectedFood}.png`;
+            document.getElementById("food-quantity").textContent = foodInventory[selectedFood] || 0;
+        }
+
+        function earnJoy() {
+            joy = Math.min(100, joy + 1);
+            money += 1;
+            localStorage.setItem("money", money);
+            updateUI();
+        }
+
+        setInterval(earnJoy, 2000);
+
+        // Открытие магазина
+        function openShop() {
+            document.getElementById("game").style.display = "none";
+            document.getElementById("shop").style.display = "block";
+            document.getElementById("shop-items").innerHTML = foods.map(food => `
+                <div class="shop-item" onclick="buyFood('${food}')">
+                    <img src="${food}.png" width="100">
+                    <div class="price">${foodPrices[food]} <img src="money.png"></div>
+                </div>
+            `).join("");
+        }
+
+        // Покупка еды
+        function buyFood(food) {
+            if (money >= foodPrices[food]) {
+                money -= foodPrices[food];
+                foodInventory[food] = (foodInventory[food] || 0) + 1;
+                localStorage.setItem("foodInventory", JSON.stringify(foodInventory));
+
+                let item = document.createElement("img");
+                item.src = `${food}.png`;
+                item.className = "falling-item";
+                item.style.left = "50%";
+                document.body.appendChild(item);
+                setTimeout(() => {
+                    item.style.transform = "translateY(500px)";
+                    setTimeout(() => item.remove(), 1000);
+                }, 10);
+
+                updateUI();
+            }
+        }
+
+        document.getElementById("btn2").onclick = openShop;
+        document.getElementById("back-btn").onclick = () => {
+            document.getElementById("shop").style.display = "none";
+            document.getElementById("game").style.display = "block";
+        };
+
+        updateUI();
+    </script>
+</body>
+</html>
