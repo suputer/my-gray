@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My-Gray</title>
+</head>
+<body style="margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: url('fon.png') no-repeat center/cover; font-family: Arial, sans-serif;">
+
+    <!-- Главное меню -->
+    <div id="menu" style="text-align: center;">
+        <h1 style="color: white; text-shadow: 2px 2px 4px black;">My-Gray</h1>
+        <img src="logo.png" id="menu-logo" style="width: 200px;">
+        <button id="start-btn" style="display: block; margin: 20px auto; padding: 10px 20px; font-size: 18px;">Начать</button>
+    </div>
+
+    <!-- Игровой экран -->
+    <div id="game" style="display: none; position: relative; width: 100vw; height: 100vh; background: url('gl-fon.png') no-repeat center/cover; text-align: center;">
+        <div id="currency" style="position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.5); color: white; padding: 10px; border-radius: 10px;">
+            <img src="money.png" style="width: 20px; vertical-align: middle;"> <span id="money-count">0</span>
+        </div>
+
+        <img src="logo.png" id="game-logo" style="width: 250px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); touch-action: none;">
+        
+        <!-- Меню выбора еды -->
+        <div id="food-menu" style="position: absolute; bottom: 100px; width: 100%; display: flex; justify-content: center;">
+            <button id="prev-food">⬅</button>
+            <img src="burger.png" id="selected-food" style="width: 100px; margin: 0 20px;">
+            <span id="food-quantity">1</span>
+            <button id="next-food">➡</button>
+        </div>
+
+        <!-- Кнопки управления -->
+        <div id="buttons" style="position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center;">
+            <button id="btn1" class="menu-btn">Играть</button>
+            <button id="btn2" class="menu-btn">Магазин</button>
+        </div>
+    </div>
+
+    <!-- Магазин -->
+    <div id="shop" style="display: none; position: relative; width: 100vw; height: 100vh; background: url('fon3.png') no-repeat center/cover; text-align: center;">
+        <h2 style="color: white;">Магазин</h2>
+        <div id="shop-items" style="display: flex; flex-wrap: wrap; justify-content: center;">
+            <div class="shop-item" data-food="burger" data-price="40"><img src="Burger.png" style="width: 80px;"><br>40 <img src="money.png" style="width: 15px;"></div>
+            <div class="shop-item" data-food="cookie" data-price="10"><img src="Cookie.png" style="width: 80px;"><br>10 <img src="money.png" style="width: 15px;"></div>
+            <div class="shop-item" data-food="fruit" data-price="30"><img src="Fruit.png" style="width: 80px;"><br>30 <img src="money.png" style="width: 15px;"></div>
+            <div class="shop-item" data-food="cake" data-price="100"><img src="Cake.png" style="width: 80px;"><br>100 <img src="money.png" style="width: 15px;"></div>
+            <div class="shop-item" data-food="milk" data-price="5"><img src="Milk.png" style="width: 80px;"><br>5 <img src="money.png" style="width: 15px;"></div>
+            <div class="shop-item" data-food="hotdog" data-price="40"><img src="Hotdog.png" style="width: 80px;"><br>40 <img src="money.png" style="width: 15px;"></div>
+        </div>
+        <button id="back-btn">Назад</button>
+    </div>
+
+    <script>
+        let joy = localStorage.getItem("joy") ? parseInt(localStorage.getItem("joy")) : 50;
+        let hunger = localStorage.getItem("hunger") ? parseInt(localStorage.getItem("hunger")) : 50;
+        let money = localStorage.getItem("money") ? parseInt(localStorage.getItem("money")) : 0;
+        let foodInventory = JSON.parse(localStorage.getItem("foodInventory")) || { burger: 1, cookie: 0, fruit: 0, cake: 0, milk: 0, hotdog: 0 };
+        
+        const gameLogo = document.getElementById("game-logo");
+        const startBtn = document.getElementById("start-btn");
+        const menu = document.getElementById("menu");
+        const game = document.getElementById("game");
+        const shop = document.getElementById("shop");
+        const moneyCount = document.getElementById("money-count");
+        const shopItems = document.querySelectorAll(".shop-item");
+        const foodMenu = document.getElementById("food-menu");
+        const selectedFood = document.getElementById("selected-food");
+        const foodQuantity = document.getElementById("food-quantity");
+
+        let selectedFoodType = "burger";
+
+        function updateStats() {
+            moneyCount.innerText = money;
+            foodQuantity.innerText = foodInventory[selectedFoodType];
+            gameLogo.src = hunger < 25 ? "logoG.png" : (joy < 25 ? "logoS.png" : (joy > 75 && hunger > 75 ? "logoH.png" : "logo.png"));
+        }
+
+        startBtn.onclick = () => {
+            menu.style.display = "none";
+            game.style.display = "block";
+            updateStats();
+        };
+
+        document.getElementById("btn2").onclick = () => {
+            game.style.display = "none";
+            shop.style.display = "block";
+        };
+
+        document.getElementById("back-btn").onclick = () => {
+            shop.style.display = "none";
+            game.style.display = "block";
+        };
+
+        shopItems.forEach(item => {
+            item.onclick = () => {
+                let food = item.dataset.food;
+                let price = parseInt(item.dataset.price);
+                if (money >= price) {
+                    money -= price;
+                    foodInventory[food] = (foodInventory[food] || 0) + 1;
+                    localStorage.setItem("money", money);
+                    localStorage.setItem("foodInventory", JSON.stringify(foodInventory));
+                    updateStats();
+                }
+            };
+        });
+
+        document.getElementById("prev-food").onclick = () => {
+            let foods = Object.keys(foodInventory);
+            let index = foods.indexOf(selectedFoodType);
+            selectedFoodType = foods[(index - 1 + foods.length) % foods.length];
+            selectedFood.src = selectedFoodType + ".png";
+            updateStats();
+        };
+
+        document.getElementById("next-food").onclick = () => {
+            let foods = Object.keys(foodInventory);
+            let index = foods.indexOf(selectedFoodType);
+            selectedFoodType = foods[(index + 1) % foods.length];
+            selectedFood.src = selectedFoodType + ".png";
+            updateStats();
+        };
+
+        selectedFood.onclick = () => {
+            if (foodInventory[selectedFoodType] > 0) {
+                foodInventory[selectedFoodType]--;
+                hunger = Math.min(100, hunger + 20);
+                localStorage.setItem("foodInventory", JSON.stringify(foodInventory));
+                localStorage.setItem("hunger", hunger);
+                updateStats();
+            }
+        };
+
+        setInterval(() => {
+            joy = Math.min(100, joy + 1);
+            money += 1;
+            localStorage.setItem("joy", joy);
+            localStorage.setItem("money", money);
+            updateStats();
+        }, 2000);
+
+        setInterval(() => {
+            hunger = Math.max(0, hunger - 1);
+            localStorage.setItem("hunger", hunger);
+            updateStats();
+        }, 5000);
+    </script>
+</body>
+</html>
