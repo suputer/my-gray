@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My-Gray</title>
+</head>
+<body style="margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: url('fon.png') no-repeat center/cover; font-family: Arial, sans-serif;">
+
+    <!-- ВАЛЮТА -->
+    <div id="money-display" style="position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.5); color: white; padding: 10px; border-radius: 10px; display: flex; align-items: center;">
+        <img src="money.png" style="width: 30px; margin-right: 5px;">
+        <span id="money-count">0</span>
+    </div>
+
+    <!-- МЕНЮ -->
+    <div id="menu" style="text-align: center;">
+        <h1 style="color: white; text-shadow: 2px 2px 4px black;">My-Gray</h1>
+        <img src="logo.png" id="menu-logo" style="width: 200px;">
+        <button id="start-btn" style="display: block; margin: 20px auto; padding: 10px 20px; font-size: 18px;">Начать</button>
+    </div>
+
+    <!-- ИГРОВОЙ ЭКРАН -->
+    <div id="game" style="display: none; position: relative; width: 100vw; height: 100vh; background: url('gl-fon.png') no-repeat center/cover; text-align: center;">
+        <img src="logo.png" id="game-logo" style="width: 250px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); touch-action: none;">
+
+        <div id="food-selection" style="position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; display: none;">
+            <button id="prev-food">◀</button>
+            <img id="selected-food" src="burger.png" style="width: 80px;">
+            <span id="food-count" style="color: white; font-size: 20px;">1</span>
+            <button id="next-food">▶</button>
+        </div>
+
+        <div id="buttons" style="position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center;">
+            <button id="btn1"><img src="icon1.png"></button>
+            <button id="btn2"><img src="icon2.png"></button>
+            <button id="btn3"><img src="icon3.png"></button>
+        </div>
+    </div>
+
+    <!-- МАГАЗИН -->
+    <div id="shop" style="display: none; position: relative; width: 100vw; height: 100vh; background: url('fon3.png') no-repeat center/cover; text-align: center;">
+        <div id="shop-items" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 50px;">
+            <!-- Товары -->
+        </div>
+        <img src="telega.png" id="cart" style="width: 100px; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);">
+    </div>
+
+    <script>
+        let joy = parseInt(localStorage.getItem("joy")) || 50;
+        let money = parseInt(localStorage.getItem("money")) || 0;
+        let inventory = JSON.parse(localStorage.getItem("inventory")) || { burger: 1 };
+
+        const moneyCount = document.getElementById("money-count");
+        const gameLogo = document.getElementById("game-logo");
+        const startBtn = document.getElementById("start-btn");
+        const menu = document.getElementById("menu");
+        const game = document.getElementById("game");
+        const shop = document.getElementById("shop");
+        const btn1 = document.getElementById("btn1");
+        const btn2 = document.getElementById("btn2");
+        const btn3 = document.getElementById("btn3");
+        const shopItems = document.getElementById("shop-items");
+
+        const selectedFood = document.getElementById("selected-food");
+        const foodCount = document.getElementById("food-count");
+        const foodSelection = document.getElementById("food-selection");
+        const prevFood = document.getElementById("prev-food");
+        const nextFood = document.getElementById("next-food");
+
+        let foodList = ["burger", "cookie", "fruit", "cake", "milk", "hotdog"];
+        let currentFoodIndex = 0;
+
+        function updateMoney() {
+            moneyCount.innerText = money;
+            localStorage.setItem("money", money);
+        }
+
+        function updateInventory() {
+            localStorage.setItem("inventory", JSON.stringify(inventory));
+            foodSelection.style.display = Object.keys(inventory).length > 0 ? "flex" : "none";
+            selectedFood.src = `${foodList[currentFoodIndex]}.png`;
+            foodCount.innerText = inventory[foodList[currentFoodIndex]] || 0;
+        }
+
+        function buyItem(item, price) {
+            if (money >= price) {
+                money -= price;
+                inventory[item] = (inventory[item] || 0) + 1;
+                updateMoney();
+                updateInventory();
+            } else {
+                alert("Недостаточно монет!");
+            }
+        }
+
+        function switchMenu(menuNumber) {
+            game.style.display = "none";
+            shop.style.display = "none";
+            if (menuNumber === 1) {
+                game.style.display = "block";
+            } else if (menuNumber === 3) {
+                shop.style.display = "block";
+            }
+        }
+
+        startBtn.onclick = () => {
+            menu.style.display = "none";
+            game.style.display = "block";
+        };
+
+        btn1.onclick = () => switchMenu(1);
+        btn3.onclick = () => switchMenu(3);
+
+        foodList.forEach(item => {
+            let div = document.createElement("div");
+            div.innerHTML = `
+                <img src="${item}.png" style="width: 80px;">
+                <div style="display: flex; align-items: center; justify-content: center;">
+                    <span>${Math.floor(Math.random() * 100)}</span>
+                    <img src="money.png" style="width: 20px;">
+                </div>
+                <button onclick="buyItem('${item}', ${Math.floor(Math.random() * 100)})">Купить</button>
+            `;
+            shopItems.appendChild(div);
+        });
+
+        prevFood.onclick = () => {
+            currentFoodIndex = (currentFoodIndex - 1 + foodList.length) % foodList.length;
+            updateInventory();
+        };
+
+        nextFood.onclick = () => {
+            currentFoodIndex = (currentFoodIndex + 1) % foodList.length;
+            updateInventory();
+        };
+
+        setInterval(() => {
+            if (joy < 100) {
+                joy++;
+                money++;
+                updateMoney();
+            }
+        }, 1000);
+
+        updateInventory();
+    </script>
+</body>
+</html>
