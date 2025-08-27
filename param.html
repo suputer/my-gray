@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анализатор URL параметров</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            line-height: 1.6;
+        }
+        .param { 
+            background-color: #f4f4f4; 
+            padding: 10px; 
+            margin-bottom: 5px; 
+            border-left: 4px solid #007bff;
+        }
+        .error { 
+            color: #dc3545; 
+            font-weight: bold; 
+        }
+        a { 
+            color: #007bff; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Анализатор URL параметров</h1>
+    <p>Эта страница показывает параметры, переданные в URL.</p>
+    
+    <div id="paramContainer"></div>
+    <!-- Сюда JavaScript вставит параметры -->
+    
+    <p>Попробуйте добавить параметры в адресную строку. Например:</p>
+    <p><a href="?name=Иван&city=Москва&job=Разработчик">?name=Иван&city=Москва&job=Разработчик</a></p>
+    <p><a href="?product=Phone&price=500&color=black">?product=Phone&price=500&color=black</a></p>
+
+    <script>
+        // Функция для получения параметров из URL
+        function getUrlParams() {
+            // Получаем строку с параметрами (всё, что после '?')
+            const queryString = window.location.search;
+            
+            // Создаем объект URLSearchParams для удобной работы
+            const urlParams = new URLSearchParams(queryString);
+            
+            // Контейнер, куда будем выводить результат
+            const container = document.getElementById('paramContainer');
+            
+            // Проверяем, есть ли вообще параметры
+            if (urlParams.toString() === '') {
+                container.innerHTML = '<p class="error">В URL нет параметров.</p>';
+                return;
+            }
+            
+            // Создаем HTML для отображения каждого параметра
+            let html = '<h2>Найденные параметры:</h2>';
+            
+            // Перебираем все параметры и их значения
+            urlParams.forEach((value, key) => {
+                html += `
+                    <div class="param">
+                        <strong>${key}</strong> = ${value}
+                    </div>
+                `;
+            });
+            
+            // Вставляем получившийся HTML в контейнер
+            container.innerHTML = html;
+        }
+
+        // Запускаем функцию при загрузке страницы
+        window.onload = getUrlParams;
+    </script>
+</body>
+</html>
